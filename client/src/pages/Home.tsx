@@ -1,18 +1,20 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2, Music } from "lucide-react";
+import { Loader2, Music, Plus } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
 import { AudioTrack } from "@/components/AudioTrack";
 import { SearchBar } from "@/components/SearchBar";
+import { UploadDialog } from "@/components/UploadDialog";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-  const { data: tracks, isLoading: tracksLoading } = trpc.audio.list.useQuery(
+  const { data: tracks, isLoading: tracksLoading, refetch } = trpc.audio.list.useQuery(
     { limit: 50, offset: 0 },
     { enabled: isAuthenticated }
   );
@@ -60,9 +62,18 @@ export default function Home() {
               <Music className="w-8 h-8 text-accent" />
               <h1 className="text-2xl font-bold text-foreground">AudioCatalog</h1>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = getLoginUrl()}>
-              {user?.name || "Profile"}
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setUploadDialogOpen(true)}
+                className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Track
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = getLoginUrl()}>
+                {user?.name || "Profile"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -100,13 +111,29 @@ export default function Home() {
           ) : (
             <div className="glass-card p-12 text-center">
               <Music className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground mb-6">
                 {searchQuery ? "No tracks found" : "No audio tracks yet. Upload your first track to get started!"}
               </p>
+              {!searchQuery && (
+                <Button
+                  onClick={() => setUploadDialogOpen(true)}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Upload Your First Track
+                </Button>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Upload Dialog */}
+      <UploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

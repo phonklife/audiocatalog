@@ -25,6 +25,15 @@
 - [ ] Add responsive design for mobile
 - [ ] Add loading states and error handling
 
+## Phase 3.1: Audio Upload Implementation
+- [x] Create upload form component with file input
+- [x] Add audio file validation (format, size)
+- [x] Create tRPC mutation for file upload with S3 integration
+- [x] Implement progress tracking for uploads
+- [x] Add metadata input fields (title, artist, album, genre)
+- [x] Create upload modal/dialog
+- [x] Test upload functionality end-to-end
+
 ## Phase 4: Testing & Deployment
 - [ ] Write vitest tests for database queries
 - [ ] Write vitest tests for tRPC procedures
