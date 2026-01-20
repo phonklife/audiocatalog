@@ -3,16 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Music, Plus } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AudioTrack } from "@/components/AudioTrack";
 import { SearchBar } from "@/components/SearchBar";
 import { UploadDialog } from "@/components/UploadDialog";
+import { usePlayback } from "@/contexts/PlaybackContext";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const { currentTrackId, isPlaying, playTrack, pauseTrack, playNext, playPrevious, setPlaylist } = usePlayback();
 
   const { data: tracks, isLoading: tracksLoading, refetch } = trpc.audio.list.useQuery(
     { limit: 50, offset: 0 },
@@ -25,6 +26,20 @@ export default function Home() {
   );
 
   const displayTracks = searchQuery.length > 0 ? searchResults : tracks;
+
+  // Update playlist when tracks change
+  useEffect(() => {
+    if (displayTracks && displayTracks.length > 0) {
+      const playlistTracks = displayTracks.map((track) => ({
+        id: track.id.toString(),
+        title: track.title,
+        artist: track.artist,
+        duration: track.duration,
+        url: track.fileUrl,
+      }));
+      setPlaylist(playlistTracks);
+    }
+  }, [displayTracks, setPlaylist]);
 
   if (loading) {
     return (
@@ -95,7 +110,7 @@ export default function Home() {
               <Loader2 className="w-8 h-8 animate-spin text-accent" />
             </div>
           ) : displayTracks && displayTracks.length > 0 ? (
-            displayTracks.map((track) => (
+            displayTracks.map((track, index) => (
               <AudioTrack
                 key={track.id}
                 id={track.id.toString()}
@@ -103,9 +118,15 @@ export default function Home() {
                 artist={track.artist}
                 duration={track.duration}
                 url={track.fileUrl}
-                isPlaying={playingTrackId === track.id.toString()}
-                onPlay={(id) => setPlayingTrackId(id)}
-                onPause={() => setPlayingTrackId(null)}
+                isPlaying={currentTrackId === track.id.toString() && isPlaying}
+                onPlay={(id) => playTrack(id)}
+                onPause={() => pauseTrack()}
+                onNext={() => {
+                  playNext();
+                }}
+                onPrevious={() => {
+                  playPrevious();
+                }}
               />
             ))
           ) : (
