@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { AudioUploadForm } from './AudioUploadForm';
 
 interface UploadDialogProps {
@@ -11,6 +11,7 @@ export function UploadDialog({ open, onOpenChange, onSuccess }: UploadDialogProp
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
+        <DialogTitle>Upload Audio Track</DialogTitle>
         <AudioUploadForm
           onSuccess={() => {
             onSuccess?.();

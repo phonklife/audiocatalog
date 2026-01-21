@@ -25,6 +25,9 @@
 - [ ] Add responsive design for mobile
 - [ ] Add loading states and error handling
 
+## Bug Fixes
+- [x] Fix DialogContent accessibility error in UploadDialog (missing DialogTitle)
+
 ## Phase 3.5: Advanced Analytics Implementation
 - [x] Create analytics queries for time-based patterns
 - [x] Add tRPC procedures for analytics data
