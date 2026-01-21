@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays } from "./db";
+import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -76,6 +76,21 @@ export const appRouter = router({
           description: input.description,
         });
       }),
+  }),
+
+  favorites: router({
+    add: protectedProcedure
+      .input(z.object({ trackId: z.number() }))
+      .mutation(({ ctx, input }) => addFavorite(ctx.user.id, input.trackId)),
+    remove: protectedProcedure
+      .input(z.object({ trackId: z.number() }))
+      .mutation(({ ctx, input }) => removeFavorite(ctx.user.id, input.trackId)),
+    check: protectedProcedure
+      .input(z.object({ trackId: z.number() }))
+      .query(({ ctx, input }) => isFavorite(ctx.user.id, input.trackId)),
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
+      .query(({ ctx, input }) => getFavoriteTracks(ctx.user.id, input.limit, input.offset)),
   }),
 });
 

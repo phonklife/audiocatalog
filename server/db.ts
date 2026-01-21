@@ -1,6 +1,6 @@
 import { and, eq, like, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, audioTracks, InsertAudioTrack } from "../drizzle/schema";
+import { InsertUser, users, audioTracks, InsertAudioTrack, favorites, InsertFavorite } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -149,4 +149,93 @@ export async function updateAudioTrackPlays(trackId: number) {
     .update(audioTracks)
     .set({ plays: sql`${audioTracks.plays} + 1` })
     .where(eq(audioTracks.id, trackId));
+}
+
+export async function addFavorite(userId: number, trackId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot add favorite: database not available");
+    return null;
+  }
+
+  try {
+    return db.insert(favorites).values({ userId, trackId });
+  } catch (error) {
+    console.error("[Database] Error adding favorite:", error);
+    return null;
+  }
+}
+
+export async function removeFavorite(userId: number, trackId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot remove favorite: database not available");
+    return null;
+  }
+
+  return db
+    .delete(favorites)
+    .where(and(eq(favorites.userId, userId), eq(favorites.trackId, trackId)));
+}
+
+export async function isFavorite(userId: number, trackId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot check favorite: database not available");
+    return false;
+  }
+
+  const result = await db
+    .select()
+    .from(favorites)
+    .where(and(eq(favorites.userId, userId), eq(favorites.trackId, trackId)))
+    .limit(1);
+
+  return result.length > 0;
+}
+
+export async function getFavoriteTracks(userId: number, limit = 50, offset = 0) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get favorite tracks: database not available");
+    return [];
+  }
+
+  return db
+    .select({
+      id: audioTracks.id,
+      userId: audioTracks.userId,
+      title: audioTracks.title,
+      artist: audioTracks.artist,
+      album: audioTracks.album,
+      duration: audioTracks.duration,
+      fileUrl: audioTracks.fileUrl,
+      fileKey: audioTracks.fileKey,
+      genre: audioTracks.genre,
+      description: audioTracks.description,
+      plays: audioTracks.plays,
+      createdAt: audioTracks.createdAt,
+      updatedAt: audioTracks.updatedAt,
+    })
+    .from(audioTracks)
+    .innerJoin(favorites, eq(audioTracks.id, favorites.trackId))
+    .where(eq(favorites.userId, userId))
+    .orderBy(favorites.createdAt)
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getFavoriteCount(userId: number, trackId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get favorite count: database not available");
+    return 0;
+  }
+
+  const result = await db
+    .select()
+    .from(favorites)
+    .where(eq(favorites.trackId, trackId));
+
+  return result.length;
 }

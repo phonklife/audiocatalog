@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioPlayer } from './AudioPlayer';
+import { FavoriteButton } from './FavoriteButton';
 
 interface AudioTrackProps {
   id: string;
@@ -123,6 +124,11 @@ export function AudioTrack({
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             </div>
+          </div>
+
+          {/* Favorite Button */}
+          <div className="flex-shrink-0">
+            <FavoriteButton trackId={parseInt(id)} size="md" />
           </div>
 
           {/* Expand button */}

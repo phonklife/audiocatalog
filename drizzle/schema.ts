@@ -43,3 +43,13 @@ export const audioTracks = mysqlTable("audioTracks", {
 
 export type AudioTrack = typeof audioTracks.$inferSelect;
 export type InsertAudioTrack = typeof audioTracks.$inferInsert;
+
+export const favorites = mysqlTable("favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  trackId: int("trackId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = typeof favorites.$inferInsert;
