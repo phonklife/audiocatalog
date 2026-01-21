@@ -20,10 +20,21 @@
 ## Phase 3: Features & Polish
 - [x] Add audio upload functionality
 - [ ] Add track metadata editing
-- [x] Add favorites/bookmarking feature (in progress)
-- [ ] Add playback history
+- [x] Add favorites/bookmarking feature
+- [x] Add playback history (in progress)
 - [ ] Add responsive design for mobile
 - [ ] Add loading states and error handling
+
+## Phase 3.4: Playback History & Statistics Implementation
+- [x] Create playback_history table in database schema
+- [x] Add database queries for playback history operations
+- [x] Create tRPC procedures for history tracking
+- [x] Create Statistics page with user listening stats
+- [x] Add recently played section to Home page
+- [x] Add top tracks recommendations
+- [x] Create recommendation algorithm
+- [x] Add statistics display (total plays, listening time)
+- [x] Add navigation to Statistics page
 
 ## Phase 3.3: Favorites Feature Implementation
 - [x] Create favorites table in database schema

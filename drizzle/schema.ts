@@ -53,3 +53,13 @@ export const favorites = mysqlTable("favorites", {
 
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
+
+export const playbackHistory = mysqlTable("playbackHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  trackId: int("trackId").notNull(),
+  playedAt: timestamp("playedAt").defaultNow().notNull(),
+});
+
+export type PlaybackHistory = typeof playbackHistory.$inferSelect;
+export type InsertPlaybackHistory = typeof playbackHistory.$inferInsert;

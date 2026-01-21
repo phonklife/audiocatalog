@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2, Music, Plus, Heart } from "lucide-react";
+import { Loader2, Music, Plus, Heart, TrendingUp } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -80,6 +80,13 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-foreground">AudioCatalog</h1>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setLocation('/statistics')}
+                variant="outline"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Statistics
+              </Button>
               <Button
                 onClick={() => setLocation('/favorites')}
                 variant="outline"

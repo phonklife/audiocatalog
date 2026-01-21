@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks } from "./db";
+import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks, recordPlayback, getRecentlyPlayed, getTopTracks, getUserStatistics, getPlaybackHistory } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -91,6 +91,23 @@ export const appRouter = router({
     list: protectedProcedure
       .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
       .query(({ ctx, input }) => getFavoriteTracks(ctx.user.id, input.limit, input.offset)),
+  }),
+
+  history: router({
+    record: protectedProcedure
+      .input(z.object({ trackId: z.number() }))
+      .mutation(({ ctx, input }) => recordPlayback(ctx.user.id, input.trackId)),
+    recentlyPlayed: protectedProcedure
+      .input(z.object({ limit: z.number().default(10) }))
+      .query(({ ctx, input }) => getRecentlyPlayed(ctx.user.id, input.limit)),
+    topTracks: protectedProcedure
+      .input(z.object({ limit: z.number().default(10) }))
+      .query(({ ctx, input }) => getTopTracks(ctx.user.id, input.limit)),
+    statistics: protectedProcedure
+      .query(({ ctx }) => getUserStatistics(ctx.user.id)),
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
+      .query(({ ctx, input }) => getPlaybackHistory(ctx.user.id, input.limit, input.offset)),
   }),
 });
 

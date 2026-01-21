@@ -1,6 +1,6 @@
-import { and, eq, like, or } from "drizzle-orm";
+import { and, eq, like, or, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, audioTracks, InsertAudioTrack, favorites, InsertFavorite } from "../drizzle/schema";
+import { InsertUser, users, audioTracks, InsertAudioTrack, favorites, InsertFavorite, playbackHistory, InsertPlaybackHistory } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -238,4 +238,147 @@ export async function getFavoriteCount(userId: number, trackId: number) {
     .where(eq(favorites.trackId, trackId));
 
   return result.length;
+}
+
+export async function recordPlayback(userId: number, trackId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot record playback: database not available");
+    return null;
+  }
+
+  try {
+    return db.insert(playbackHistory).values({ userId, trackId });
+  } catch (error) {
+    console.error("[Database] Error recording playback:", error);
+    return null;
+  }
+}
+
+export async function getRecentlyPlayed(userId: number, limit = 10) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get recently played: database not available");
+    return [];
+  }
+
+  return db
+    .select({
+      id: audioTracks.id,
+      userId: audioTracks.userId,
+      title: audioTracks.title,
+      artist: audioTracks.artist,
+      album: audioTracks.album,
+      duration: audioTracks.duration,
+      fileUrl: audioTracks.fileUrl,
+      fileKey: audioTracks.fileKey,
+      genre: audioTracks.genre,
+      description: audioTracks.description,
+      plays: audioTracks.plays,
+      createdAt: audioTracks.createdAt,
+      updatedAt: audioTracks.updatedAt,
+      playedAt: playbackHistory.playedAt,
+    })
+    .from(playbackHistory)
+    .innerJoin(audioTracks, eq(playbackHistory.trackId, audioTracks.id))
+    .where(eq(playbackHistory.userId, userId))
+    .orderBy(desc(playbackHistory.playedAt))
+    .limit(limit);
+}
+
+export async function getTopTracks(userId: number, limit = 10) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get top tracks: database not available");
+    return [];
+  }
+
+  const { sql } = await import("drizzle-orm");
+  
+  return db
+    .select({
+      id: audioTracks.id,
+      userId: audioTracks.userId,
+      title: audioTracks.title,
+      artist: audioTracks.artist,
+      album: audioTracks.album,
+      duration: audioTracks.duration,
+      fileUrl: audioTracks.fileUrl,
+      fileKey: audioTracks.fileKey,
+      genre: audioTracks.genre,
+      description: audioTracks.description,
+      plays: audioTracks.plays,
+      createdAt: audioTracks.createdAt,
+      updatedAt: audioTracks.updatedAt,
+      playCount: sql<number>`COUNT(${playbackHistory.id})`.as("playCount"),
+    })
+    .from(audioTracks)
+    .leftJoin(playbackHistory, and(
+      eq(audioTracks.id, playbackHistory.trackId),
+      eq(playbackHistory.userId, userId)
+    ))
+    .where(eq(audioTracks.userId, userId))
+    .groupBy(audioTracks.id)
+    .orderBy(sql`playCount DESC`)
+    .limit(limit);
+}
+
+export async function getUserStatistics(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user statistics: database not available");
+    return { totalPlays: 0, uniqueTracks: 0, totalTracks: 0 };
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  const playStats = await db
+    .select({
+      totalPlays: sql<number>`COUNT(${playbackHistory.id})`.as("totalPlays"),
+      uniqueTracks: sql<number>`COUNT(DISTINCT ${playbackHistory.trackId})`.as("uniqueTracks"),
+    })
+    .from(playbackHistory)
+    .where(eq(playbackHistory.userId, userId));
+
+  const trackCount = await db
+    .select()
+    .from(audioTracks)
+    .where(eq(audioTracks.userId, userId));
+
+  return {
+    totalPlays: playStats[0]?.totalPlays || 0,
+    uniqueTracks: playStats[0]?.uniqueTracks || 0,
+    totalTracks: trackCount.length,
+  };
+}
+
+export async function getPlaybackHistory(userId: number, limit = 50, offset = 0) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get playback history: database not available");
+    return [];
+  }
+
+  return db
+    .select({
+      id: playbackHistory.id,
+      userId: playbackHistory.userId,
+      trackId: playbackHistory.trackId,
+      playedAt: playbackHistory.playedAt,
+      track: {
+        id: audioTracks.id,
+        title: audioTracks.title,
+        artist: audioTracks.artist,
+        album: audioTracks.album,
+        duration: audioTracks.duration,
+        fileUrl: audioTracks.fileUrl,
+        genre: audioTracks.genre,
+      },
+    })
+    .from(playbackHistory)
+    .innerJoin(audioTracks, eq(playbackHistory.trackId, audioTracks.id))
+    .where(eq(playbackHistory.userId, userId))
+    .orderBy(desc(playbackHistory.playedAt))
+    .limit(limit)
+    .offset(offset);
 }

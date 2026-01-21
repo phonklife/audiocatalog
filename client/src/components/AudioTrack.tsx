@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioPlayer } from './AudioPlayer';
 import { FavoriteButton } from './FavoriteButton';
+import { useTrackPlayback } from '@/hooks/useTrackPlayback';
 
 interface AudioTrackProps {
   id: string;
@@ -32,6 +33,9 @@ export function AudioTrack({
   const [currentTime, setCurrentTime] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  
+  // Track playback for statistics
+  useTrackPlayback(parseInt(id), isPlaying);
 
   // Generate random waveform data for visualization
   useEffect(() => {
