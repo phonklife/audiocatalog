@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks, recordPlayback, getRecentlyPlayed, getTopTracks, getUserStatistics, getPlaybackHistory } from "./db";
+import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks, recordPlayback, getRecentlyPlayed, getTopTracks, getUserStatistics, getPlaybackHistory, getListeningPatternsByDay, getListeningPatternsByWeek, getListeningPatternsByMonth, getGenrePreferences, getTopGenresByPeriod } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -108,6 +108,21 @@ export const appRouter = router({
     list: protectedProcedure
       .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
       .query(({ ctx, input }) => getPlaybackHistory(ctx.user.id, input.limit, input.offset)),
+    listeningPatternsByDay: protectedProcedure
+      .input(z.object({ daysBack: z.number().default(30) }))
+      .query(({ ctx, input }) => getListeningPatternsByDay(ctx.user.id, input.daysBack)),
+    listeningPatternsByWeek: protectedProcedure
+      .input(z.object({ weeksBack: z.number().default(12) }))
+      .query(({ ctx, input }) => getListeningPatternsByWeek(ctx.user.id, input.weeksBack)),
+    listeningPatternsByMonth: protectedProcedure
+      .input(z.object({ monthsBack: z.number().default(12) }))
+      .query(({ ctx, input }) => getListeningPatternsByMonth(ctx.user.id, input.monthsBack)),
+    genrePreferences: protectedProcedure
+      .input(z.object({ limit: z.number().default(10) }))
+      .query(({ ctx, input }) => getGenrePreferences(ctx.user.id, input.limit)),
+    topGenresByPeriod: protectedProcedure
+      .input(z.object({ period: z.enum(["day", "week", "month"]).default("month") }))
+      .query(({ ctx, input }) => getTopGenresByPeriod(ctx.user.id, input.period)),
   }),
 });
 

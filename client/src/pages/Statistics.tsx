@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2, Music, ArrowLeft, TrendingUp, Clock, Play } from "lucide-react";
+import { Loader2, Music, ArrowLeft, TrendingUp, Clock, Play, BarChart3 } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -86,9 +86,18 @@ export default function Statistics() {
                 <p className="text-sm text-muted-foreground">Track your listening habits</p>
               </div>
             </div>
-            <Button variant="outline" onClick={() => window.location.href = getLoginUrl()}>
-              {user?.name || "Profile"}
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setLocation('/analytics')}
+                variant="outline"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = getLoginUrl()}>
+                {user?.name || "Profile"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>

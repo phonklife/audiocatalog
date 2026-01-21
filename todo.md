@@ -21,9 +21,19 @@
 - [x] Add audio upload functionality
 - [ ] Add track metadata editing
 - [x] Add favorites/bookmarking feature
-- [x] Add playback history (in progress)
+- [x] Add playback history
 - [ ] Add responsive design for mobile
 - [ ] Add loading states and error handling
+
+## Phase 3.5: Advanced Analytics Implementation
+- [x] Create analytics queries for time-based patterns
+- [x] Add tRPC procedures for analytics data
+- [x] Create Analytics page with charts
+- [x] Implement listening patterns by day/week/month
+- [x] Add genre preference analysis
+- [x] Create time period selector (day/week/month)
+- [x] Add data visualization with charts
+- [x] Integrate analytics into Statistics page
 
 ## Phase 3.4: Playback History & Statistics Implementation
 - [x] Create playback_history table in database schema

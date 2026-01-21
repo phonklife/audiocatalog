@@ -382,3 +382,133 @@ export async function getPlaybackHistory(userId: number, limit = 50, offset = 0)
     .limit(limit)
     .offset(offset);
 }
+
+
+export async function getListeningPatternsByDay(userId: number, daysBack = 30) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get listening patterns: database not available");
+    return [];
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  return db
+    .select({
+      date: sql<string>`DATE(${playbackHistory.playedAt})`.as("date"),
+      plays: sql<number>`COUNT(${playbackHistory.id})`.as("plays"),
+    })
+    .from(playbackHistory)
+    .where(
+      and(
+        eq(playbackHistory.userId, userId),
+        sql`${playbackHistory.playedAt} >= DATE_SUB(NOW(), INTERVAL ${daysBack} DAY)`
+      )
+    )
+    .groupBy(sql`DATE(${playbackHistory.playedAt})`)
+    .orderBy(sql`date ASC`);
+}
+
+export async function getListeningPatternsByWeek(userId: number, weeksBack = 12) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get listening patterns: database not available");
+    return [];
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  return db
+    .select({
+      week: sql<string>`DATE_FORMAT(${playbackHistory.playedAt}, '%Y-W%u')`.as("week"),
+      plays: sql<number>`COUNT(${playbackHistory.id})`.as("plays"),
+    })
+    .from(playbackHistory)
+    .where(
+      and(
+        eq(playbackHistory.userId, userId),
+        sql`${playbackHistory.playedAt} >= DATE_SUB(NOW(), INTERVAL ${weeksBack} WEEK)`
+      )
+    )
+    .groupBy(sql`YEAR(${playbackHistory.playedAt}), WEEK(${playbackHistory.playedAt})`)
+    .orderBy(sql`week ASC`);
+}
+
+export async function getListeningPatternsByMonth(userId: number, monthsBack = 12) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get listening patterns: database not available");
+    return [];
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  return db
+    .select({
+      month: sql<string>`DATE_FORMAT(${playbackHistory.playedAt}, '%Y-%m')`.as("month"),
+      plays: sql<number>`COUNT(${playbackHistory.id})`.as("plays"),
+    })
+    .from(playbackHistory)
+    .where(
+      and(
+        eq(playbackHistory.userId, userId),
+        sql`${playbackHistory.playedAt} >= DATE_SUB(NOW(), INTERVAL ${monthsBack} MONTH)`
+      )
+    )
+    .groupBy(sql`YEAR(${playbackHistory.playedAt}), MONTH(${playbackHistory.playedAt})`)
+    .orderBy(sql`month ASC`);
+}
+
+export async function getGenrePreferences(userId: number, limit = 10) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get genre preferences: database not available");
+    return [];
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  return db
+    .select({
+      genre: audioTracks.genre,
+      plays: sql<number>`COUNT(${playbackHistory.id})`.as("plays"),
+      percentage: sql<number>`ROUND(COUNT(${playbackHistory.id}) * 100.0 / (SELECT COUNT(*) FROM ${playbackHistory} WHERE userId = ${userId}), 2)`.as("percentage"),
+    })
+    .from(playbackHistory)
+    .innerJoin(audioTracks, eq(playbackHistory.trackId, audioTracks.id))
+    .where(eq(playbackHistory.userId, userId))
+    .groupBy(audioTracks.genre)
+    .orderBy(sql`plays DESC`)
+    .limit(limit);
+}
+
+export async function getTopGenresByPeriod(userId: number, period: "day" | "week" | "month" = "month") {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get top genres: database not available");
+    return [];
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  let dateFilter: string;
+  if (period === "day") {
+    dateFilter = "DATE(playbackHistory.playedAt) = CURDATE()";
+  } else if (period === "week") {
+    dateFilter = "playbackHistory.playedAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+  } else {
+    dateFilter = "playbackHistory.playedAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+  }
+
+  return db
+    .select({
+      genre: audioTracks.genre,
+      plays: sql<number>`COUNT(${playbackHistory.id})`.as("plays"),
+    })
+    .from(playbackHistory)
+    .innerJoin(audioTracks, eq(playbackHistory.trackId, audioTracks.id))
+    .where(and(eq(playbackHistory.userId, userId), sql`${dateFilter}`))
+    .groupBy(audioTracks.genre)
+    .orderBy(sql`plays DESC`)
+    .limit(10);
+}
