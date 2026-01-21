@@ -28,6 +28,14 @@
 ## Bug Fixes
 - [x] Fix DialogContent accessibility error in UploadDialog (missing DialogTitle)
 
+## Phase 3.6: Theme Switching Implementation
+- [x] Create light theme CSS variables
+- [x] Update ThemeContext to support theme switching
+- [x] Create ThemeToggle component with icon
+- [x] Add theme toggle to header/navigation
+- [x] Implement localStorage persistence for theme preference
+- [x] Test dark and light mode across all pages
+
 ## Phase 3.5: Advanced Analytics Implementation
 - [x] Create analytics queries for time-based patterns
 - [x] Add tRPC procedures for analytics data

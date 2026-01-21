@@ -1,6 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Loader2, Music, Plus, Heart, TrendingUp } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
@@ -101,6 +102,7 @@ export default function Home() {
                 <Plus className="w-4 h-4 mr-2" />
                 Upload Track
               </Button>
+              <ThemeToggle />
               <Button variant="outline" onClick={() => window.location.href = getLoginUrl()}>
                 {user?.name || "Profile"}
               </Button>
