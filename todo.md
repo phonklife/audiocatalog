@@ -36,6 +36,17 @@
 - [x] Implement localStorage persistence for theme preference
 - [x] Test dark and light mode across all pages
 
+## Phase 3.7: Keyboard Shortcuts Implementation
+- [x] Create useKeyboardShortcuts hook
+- [x] Implement spacebar for play/pause
+- [x] Implement arrow keys for track navigation (left/right)
+- [ ] Implement M for mute toggle
+- [ ] Implement + and - for volume control
+- [x] Implement T for theme toggle
+- [x] Add keyboard shortcuts help dialog
+- [x] Display keyboard shortcuts in UI
+- [x] Test all keyboard shortcuts
+
 ## Phase 3.5: Advanced Analytics Implementation
 - [x] Create analytics queries for time-based patterns
 - [x] Add tRPC procedures for analytics data

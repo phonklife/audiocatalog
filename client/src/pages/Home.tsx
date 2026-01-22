@@ -10,6 +10,9 @@ import { SearchBar } from "@/components/SearchBar";
 import { UploadDialog } from "@/components/UploadDialog";
 import { usePlayback } from "@/contexts/PlaybackContext";
 import { useLocation } from "wouter";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useTheme } from "@/contexts/ThemeContext";
+import { KeyboardShortcutsHelp } from "@/components/KeyboardShortcutsHelp";
 
 export default function Home() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -17,6 +20,23 @@ export default function Home() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [, setLocation] = useLocation();
   const { currentTrackId, isPlaying, playTrack, pauseTrack, playNext, playPrevious, setPlaylist } = usePlayback();
+  const { toggleTheme } = useTheme();
+
+  // Setup keyboard shortcuts
+  useKeyboardShortcuts({
+    onPlayPause: () => {
+      if (currentTrackId) {
+        if (isPlaying) {
+          pauseTrack();
+        } else {
+          playTrack(currentTrackId);
+        }
+      }
+    },
+    onNextTrack: () => playNext(),
+    onPreviousTrack: () => playPrevious(),
+    onThemeToggle: toggleTheme,
+  });
 
   const { data: tracks, isLoading: tracksLoading, refetch } = trpc.audio.list.useQuery(
     { limit: 50, offset: 0 },
@@ -103,6 +123,7 @@ export default function Home() {
                 Upload Track
               </Button>
               <ThemeToggle />
+              <KeyboardShortcutsHelp />
               <Button variant="outline" onClick={() => window.location.href = getLoginUrl()}>
                 {user?.name || "Profile"}
               </Button>
