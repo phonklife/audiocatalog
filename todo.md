@@ -40,8 +40,8 @@
 - [x] Create useKeyboardShortcuts hook
 - [x] Implement spacebar for play/pause
 - [x] Implement arrow keys for track navigation (left/right)
-- [ ] Implement M for mute toggle
-- [ ] Implement + and - for volume control
+- [x] Implement M for mute toggle
+- [x] Implement + and - for volume control
 - [x] Implement T for theme toggle
 - [x] Add keyboard shortcuts help dialog
 - [x] Display keyboard shortcuts in UI

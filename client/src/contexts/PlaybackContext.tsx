@@ -13,6 +13,8 @@ interface PlaybackContextType {
   isPlaying: boolean;
   playlist: Track[];
   currentTrackIndex: number;
+  volume: number;
+  isMuted: boolean;
   
   setPlaylist: (tracks: Track[]) => void;
   playTrack: (trackId: string) => void;
@@ -21,6 +23,8 @@ interface PlaybackContextType {
   playNext: () => void;
   playPrevious: () => void;
   getCurrentTrack: () => Track | null;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
 }
 
 const PlaybackContext = createContext<PlaybackContextType | undefined>(undefined);
@@ -30,6 +34,8 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playlist, setPlaylist] = useState<Track[]>([]);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [volume, setVolume] = useState(0.8);
+  const [isMuted, setIsMuted] = useState(false);
 
   const getCurrentTrack = useCallback(() => {
     if (currentTrackIndex >= 0 && currentTrackIndex < playlist.length) {
@@ -69,11 +75,25 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
     }
   }, [playlist, currentTrackIndex, playTrack]);
 
+  const handleSetVolume = useCallback((newVolume: number) => {
+    const clampedVolume = Math.max(0, Math.min(1, newVolume));
+    setVolume(clampedVolume);
+    if (clampedVolume > 0 && isMuted) {
+      setIsMuted(false);
+    }
+  }, [isMuted]);
+
+  const handleToggleMute = useCallback(() => {
+    setIsMuted((prev) => !prev);
+  }, []);
+
   const value: PlaybackContextType = {
     currentTrackId,
     isPlaying,
     playlist,
     currentTrackIndex,
+    volume,
+    isMuted,
     setPlaylist,
     playTrack,
     pauseTrack,
@@ -81,6 +101,8 @@ export function PlaybackProvider({ children }: { children: React.ReactNode }) {
     playNext,
     playPrevious,
     getCurrentTrack,
+    setVolume: handleSetVolume,
+    toggleMute: handleToggleMute,
   };
 
   return (

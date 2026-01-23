@@ -19,7 +19,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [, setLocation] = useLocation();
-  const { currentTrackId, isPlaying, playTrack, pauseTrack, playNext, playPrevious, setPlaylist } = usePlayback();
+  const { currentTrackId, isPlaying, playTrack, pauseTrack, playNext, playPrevious, setPlaylist, volume, setVolume, toggleMute } = usePlayback();
   const { toggleTheme } = useTheme();
 
   // Setup keyboard shortcuts
@@ -35,6 +35,9 @@ export default function Home() {
     },
     onNextTrack: () => playNext(),
     onPreviousTrack: () => playPrevious(),
+    onMuteToggle: () => toggleMute(),
+    onVolumeUp: () => setVolume(volume + 0.1),
+    onVolumeDown: () => setVolume(volume - 0.1),
     onThemeToggle: toggleTheme,
   });
 

@@ -10,6 +10,8 @@ interface KeyboardShortcuts {
   onThemeToggle?: () => void;
 }
 
+const VOLUME_STEP = 0.1;
+
 export function useKeyboardShortcuts({
   onPlayPause,
   onNextTrack,
@@ -52,6 +54,7 @@ export function useKeyboardShortcuts({
           }
           break;
         case "Equal":
+        case "Plus":
         case "NumpadAdd":
           if (!event.ctrlKey && !event.metaKey && !event.altKey) {
             event.preventDefault();
