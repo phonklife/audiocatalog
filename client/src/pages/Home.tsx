@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2, Music, Plus, Heart, TrendingUp } from "lucide-react";
+import { Loader2, Music, Plus, Heart, TrendingUp, ListMusic } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
@@ -117,6 +117,13 @@ export default function Home() {
               >
                 <Heart className="w-4 h-4 mr-2" />
                 Favorites
+              </Button>
+              <Button
+                onClick={() => setLocation('/playlists')}
+                variant="outline"
+              >
+                <ListMusic className="w-4 h-4 mr-2" />
+                Playlists
               </Button>
               <Button
                 onClick={() => setUploadDialogOpen(true)}

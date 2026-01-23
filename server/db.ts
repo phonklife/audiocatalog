@@ -1,6 +1,6 @@
 import { and, eq, like, or, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, audioTracks, InsertAudioTrack, favorites, InsertFavorite, playbackHistory, InsertPlaybackHistory } from "../drizzle/schema";
+import { InsertUser, users, audioTracks, InsertAudioTrack, favorites, InsertFavorite, playbackHistory, InsertPlaybackHistory, playlists, InsertPlaylist, playlistTracks, InsertPlaylistTrack } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -511,4 +511,188 @@ export async function getTopGenresByPeriod(userId: number, period: "day" | "week
     .groupBy(audioTracks.genre)
     .orderBy(sql`plays DESC`)
     .limit(10);
+}
+
+// Playlist functions
+export async function createPlaylist(playlist: InsertPlaylist) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create playlist: database not available");
+    return null;
+  }
+
+  const result = await db.insert(playlists).values(playlist);
+  return result[0].insertId;
+}
+
+export async function getPlaylists(userId: number, limit = 50, offset = 0) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get playlists: database not available");
+    return [];
+  }
+
+  return db
+    .select()
+    .from(playlists)
+    .where(eq(playlists.userId, userId))
+    .orderBy(desc(playlists.updatedAt))
+    .limit(limit)
+    .offset(offset);
+}
+
+export async function getPlaylistById(playlistId: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get playlist: database not available");
+    return null;
+  }
+
+  const result = await db
+    .select()
+    .from(playlists)
+    .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+export async function updatePlaylist(playlistId: number, userId: number, updates: Partial<InsertPlaylist>) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update playlist: database not available");
+    return false;
+  }
+
+  await db
+    .update(playlists)
+    .set(updates)
+    .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
+
+  return true;
+}
+
+export async function deletePlaylist(playlistId: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete playlist: database not available");
+    return false;
+  }
+
+  // Delete playlist tracks first
+  await db
+    .delete(playlistTracks)
+    .where(eq(playlistTracks.playlistId, playlistId));
+
+  // Delete playlist
+  await db
+    .delete(playlists)
+    .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
+
+  return true;
+}
+
+export async function addTrackToPlaylist(playlistId: number, trackId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot add track to playlist: database not available");
+    return false;
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  // Get the next position
+  const maxPosition = await db
+    .select({ maxPos: sql<number>`COALESCE(MAX(${playlistTracks.position}), 0)`.as("maxPos") })
+    .from(playlistTracks)
+    .where(eq(playlistTracks.playlistId, playlistId));
+
+  const nextPosition = (maxPosition[0]?.maxPos || 0) + 1;
+
+  await db.insert(playlistTracks).values({
+    playlistId,
+    trackId,
+    position: nextPosition,
+  });
+
+  return true;
+}
+
+export async function removeTrackFromPlaylist(playlistId: number, trackId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot remove track from playlist: database not available");
+    return false;
+  }
+
+  await db
+    .delete(playlistTracks)
+    .where(and(eq(playlistTracks.playlistId, playlistId), eq(playlistTracks.trackId, trackId)));
+
+  return true;
+}
+
+export async function getPlaylistTracks(playlistId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get playlist tracks: database not available");
+    return [];
+  }
+
+  return db
+    .select({
+      id: audioTracks.id,
+      userId: audioTracks.userId,
+      title: audioTracks.title,
+      artist: audioTracks.artist,
+      album: audioTracks.album,
+      duration: audioTracks.duration,
+      fileUrl: audioTracks.fileUrl,
+      fileKey: audioTracks.fileKey,
+      genre: audioTracks.genre,
+      description: audioTracks.description,
+      plays: audioTracks.plays,
+      createdAt: audioTracks.createdAt,
+      updatedAt: audioTracks.updatedAt,
+      position: playlistTracks.position,
+    })
+    .from(playlistTracks)
+    .innerJoin(audioTracks, eq(playlistTracks.trackId, audioTracks.id))
+    .where(eq(playlistTracks.playlistId, playlistId))
+    .orderBy(playlistTracks.position);
+}
+
+export async function reorderPlaylistTracks(playlistId: number, trackIds: number[]) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot reorder playlist tracks: database not available");
+    return false;
+  }
+
+  // Update positions for each track
+  for (let i = 0; i < trackIds.length; i++) {
+    await db
+      .update(playlistTracks)
+      .set({ position: i + 1 })
+      .where(and(eq(playlistTracks.playlistId, playlistId), eq(playlistTracks.trackId, trackIds[i])));
+  }
+
+  return true;
+}
+
+export async function getPlaylistTrackCount(playlistId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get playlist track count: database not available");
+    return 0;
+  }
+
+  const { sql } = await import("drizzle-orm");
+
+  const result = await db
+    .select({ count: sql<number>`COUNT(${playlistTracks.id})`.as("count") })
+    .from(playlistTracks)
+    .where(eq(playlistTracks.playlistId, playlistId));
+
+  return result[0]?.count || 0;
 }

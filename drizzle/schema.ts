@@ -63,3 +63,28 @@ export const playbackHistory = mysqlTable("playbackHistory", {
 
 export type PlaybackHistory = typeof playbackHistory.$inferSelect;
 export type InsertPlaybackHistory = typeof playbackHistory.$inferInsert;
+
+export const playlists = mysqlTable("playlists", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  coverUrl: text("coverUrl"),
+  isPublic: int("isPublic").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Playlist = typeof playlists.$inferSelect;
+export type InsertPlaylist = typeof playlists.$inferInsert;
+
+export const playlistTracks = mysqlTable("playlistTracks", {
+  id: int("id").autoincrement().primaryKey(),
+  playlistId: int("playlistId").notNull(),
+  trackId: int("trackId").notNull(),
+  position: int("position").notNull(),
+  addedAt: timestamp("addedAt").defaultNow().notNull(),
+});
+
+export type PlaylistTrack = typeof playlistTracks.$inferSelect;
+export type InsertPlaylistTrack = typeof playlistTracks.$inferInsert;

@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks, recordPlayback, getRecentlyPlayed, getTopTracks, getUserStatistics, getPlaybackHistory, getListeningPatternsByDay, getListeningPatternsByWeek, getListeningPatternsByMonth, getGenrePreferences, getTopGenresByPeriod } from "./db";
+import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks, recordPlayback, getRecentlyPlayed, getTopTracks, getUserStatistics, getPlaybackHistory, getListeningPatternsByDay, getListeningPatternsByWeek, getListeningPatternsByMonth, getGenrePreferences, getTopGenresByPeriod, createPlaylist, getPlaylists, getPlaylistById, updatePlaylist, deletePlaylist, addTrackToPlaylist, removeTrackFromPlaylist, getPlaylistTracks, reorderPlaylistTracks, getPlaylistTrackCount } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -123,6 +123,57 @@ export const appRouter = router({
     topGenresByPeriod: protectedProcedure
       .input(z.object({ period: z.enum(["day", "week", "month"]).default("month") }))
       .query(({ ctx, input }) => getTopGenresByPeriod(ctx.user.id, input.period)),
+  }),
+
+  playlist: router({
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
+      .query(({ ctx, input }) => getPlaylists(ctx.user.id, input.limit, input.offset)),
+    get: protectedProcedure
+      .input(z.object({ playlistId: z.number() }))
+      .query(({ ctx, input }) => getPlaylistById(input.playlistId, ctx.user.id)),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        isPublic: z.boolean().default(false),
+      }))
+      .mutation(({ ctx, input }) =>
+        createPlaylist({ ...input, userId: ctx.user.id, isPublic: input.isPublic ? 1 : 0 })
+      ),
+    update: protectedProcedure
+      .input(z.object({
+        playlistId: z.number(),
+        name: z.string().min(1).optional(),
+        description: z.string().optional(),
+        isPublic: z.boolean().optional(),
+      }))
+      .mutation(({ ctx, input }) => {
+        const { playlistId, ...updates } = input;
+        const dbUpdates: Record<string, unknown> = {};
+        if (updates.name) dbUpdates.name = updates.name;
+        if (updates.description !== undefined) dbUpdates.description = updates.description;
+        if (updates.isPublic !== undefined) dbUpdates.isPublic = updates.isPublic ? 1 : 0;
+        return updatePlaylist(playlistId, ctx.user.id, dbUpdates);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ playlistId: z.number() }))
+      .mutation(({ ctx, input }) => deletePlaylist(input.playlistId, ctx.user.id)),
+    getTracks: protectedProcedure
+      .input(z.object({ playlistId: z.number() }))
+      .query(({ input }) => getPlaylistTracks(input.playlistId)),
+    addTrack: protectedProcedure
+      .input(z.object({ playlistId: z.number(), trackId: z.number() }))
+      .mutation(({ input }) => addTrackToPlaylist(input.playlistId, input.trackId)),
+    removeTrack: protectedProcedure
+      .input(z.object({ playlistId: z.number(), trackId: z.number() }))
+      .mutation(({ input }) => removeTrackFromPlaylist(input.playlistId, input.trackId)),
+    reorderTracks: protectedProcedure
+      .input(z.object({ playlistId: z.number(), trackIds: z.array(z.number()) }))
+      .mutation(({ input }) => reorderPlaylistTracks(input.playlistId, input.trackIds)),
+    trackCount: protectedProcedure
+      .input(z.object({ playlistId: z.number() }))
+      .query(({ input }) => getPlaylistTrackCount(input.playlistId)),
   }),
 });
 

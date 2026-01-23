@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioPlayer } from './AudioPlayer';
 import { FavoriteButton } from './FavoriteButton';
+import { AddToPlaylistDialog } from './AddToPlaylistDialog';
 import { useTrackPlayback } from '@/hooks/useTrackPlayback';
 
 interface AudioTrackProps {
@@ -130,8 +131,9 @@ export function AudioTrack({
             </div>
           </div>
 
-          {/* Favorite Button */}
-          <div className="flex-shrink-0">
+          {/* Action Buttons */}
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <AddToPlaylistDialog trackId={parseInt(id)} trackTitle={title} />
             <FavoriteButton trackId={parseInt(id)} size="md" />
           </div>
 

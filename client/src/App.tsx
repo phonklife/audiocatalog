@@ -9,6 +9,8 @@ import Home from "./pages/Home";
 import Favorites from "./pages/Favorites";
 import Statistics from "./pages/Statistics";
 import Analytics from "./pages/Analytics";
+import Playlists from "./pages/Playlists";
+import PlaylistDetail from "./pages/PlaylistDetail";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -18,6 +20,8 @@ function Router() {
       <Route path={"/favorites"} component={Favorites} />
       <Route path={"/statistics"} component={Statistics} />
       <Route path={"/analytics"} component={Analytics} />
+      <Route path={"/playlists"} component={Playlists} />
+      <Route path={"/playlist/:id"} component={PlaylistDetail} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
