@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { AudioTrack } from "@/components/AudioTrack";
 import { SearchBar } from "@/components/SearchBar";
 import { UploadDialog } from "@/components/UploadDialog";
+import { BulkUploadDialog } from "@/components/BulkUploadDialog";
 import { usePlayback } from "@/contexts/PlaybackContext";
 import { useLocation } from "wouter";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -21,6 +22,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { currentTrackId, isPlaying, playTrack, pauseTrack, playNext, playPrevious, setPlaylist, volume, setVolume, toggleMute } = usePlayback();
   const { toggleTheme } = useTheme();
+  const utils = trpc.useUtils();
 
   // Setup keyboard shortcuts
   useKeyboardShortcuts({
@@ -125,6 +127,7 @@ export default function Home() {
                 <ListMusic className="w-4 h-4 mr-2" />
                 Playlists
               </Button>
+              <BulkUploadDialog onSuccess={() => utils.audio.list.invalidate()} />
               <Button
                 onClick={() => setUploadDialogOpen(true)}
                 className="bg-accent hover:bg-accent/90 text-accent-foreground"

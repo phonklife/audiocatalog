@@ -69,6 +69,16 @@
 - [x] Add ability to change cover image for existing playlists
 - [x] Test cover image upload and display
 
+## Phase 3.10: Bulk Track Import
+- [x] Create BulkUploadDialog component
+- [x] Implement folder/multiple file drag-and-drop
+- [x] Add file queue with individual progress tracking
+- [x] Extract metadata from audio files (title from filename)
+- [x] Show upload status for each file (pending, uploading, complete, error)
+- [x] Add cancel functionality for individual uploads
+- [x] Add bulk upload button to Home page
+- [x] Test bulk upload with multiple files
+
 ## Phase 3.5: Advanced Analytics Implementation
 - [x] Create analytics queries for time-based patterns
 - [x] Add tRPC procedures for analytics data
