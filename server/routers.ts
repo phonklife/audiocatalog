@@ -174,6 +174,31 @@ export const appRouter = router({
     trackCount: protectedProcedure
       .input(z.object({ playlistId: z.number() }))
       .query(({ input }) => getPlaylistTrackCount(input.playlistId)),
+    uploadCover: protectedProcedure
+      .input(z.object({
+        playlistId: z.number(),
+        imageData: z.string(), // base64 encoded image
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Validate mime type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(input.mimeType)) {
+          throw new Error('Invalid image type. Allowed: JPEG, PNG, GIF, WEBP');
+        }
+        
+        // Decode base64 and upload to S3
+        const buffer = Buffer.from(input.imageData, 'base64');
+        const extension = input.mimeType.split('/')[1];
+        const fileKey = `playlist-covers/${ctx.user.id}/${input.playlistId}-${nanoid()}.${extension}`;
+        
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        
+        // Update playlist with cover URL
+        await updatePlaylist(input.playlistId, ctx.user.id, { coverUrl: url });
+        
+        return { coverUrl: url };
+      }),
   }),
 });
 

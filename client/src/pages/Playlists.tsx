@@ -90,8 +90,16 @@ export default function Playlists() {
                 className="group relative p-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 transition-all cursor-pointer"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 rounded-lg bg-accent/20 flex items-center justify-center flex-shrink-0">
-                    <ListMusic className="w-8 h-8 text-accent" />
+                  <div className="w-16 h-16 rounded-lg bg-accent/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {playlist.coverUrl ? (
+                      <img
+                        src={playlist.coverUrl}
+                        alt={playlist.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ListMusic className="w-8 h-8 text-accent" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-lg truncate">{playlist.name}</h3>

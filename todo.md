@@ -60,6 +60,15 @@
 - [x] Add navigation to Playlists page
 - [x] Test playlist functionality
 
+## Phase 3.9: Playlist Cover Images
+- [x] Add coverImageUrl column to playlists table (already exists as coverUrl)
+- [x] Create tRPC mutation for uploading cover image
+- [x] Add cover image upload UI to CreatePlaylistDialog
+- [x] Add cover image display on Playlists page
+- [x] Add cover image display on PlaylistDetail page
+- [x] Add ability to change cover image for existing playlists
+- [x] Test cover image upload and display
+
 ## Phase 3.5: Advanced Analytics Implementation
 - [x] Create analytics queries for time-based patterns
 - [x] Add tRPC procedures for analytics data

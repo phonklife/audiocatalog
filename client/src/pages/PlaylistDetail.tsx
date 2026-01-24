@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Music, ListMusic, ArrowLeft, Play, Pause, GripVertical, Trash2, MoreVertical } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { PlaylistCoverUpload } from "@/components/PlaylistCoverUpload";
 import { usePlayback } from "@/contexts/PlaybackContext";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -174,9 +175,14 @@ export default function PlaylistDetail() {
               <Button variant="ghost" size="icon" onClick={() => setLocation("/playlists")}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div className="w-12 h-12 rounded-lg bg-accent/20 flex items-center justify-center">
-                <ListMusic className="w-6 h-6 text-accent" />
-              </div>
+              <PlaylistCoverUpload
+                playlistId={playlistId}
+                currentCoverUrl={playlist.coverUrl}
+                onCoverChange={() => {
+                  // Refetch playlist to update cover
+                }}
+                size="md"
+              />
               <div>
                 <h1 className="text-2xl font-bold text-foreground">{playlist.name}</h1>
                 {playlist.description && (

@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, ListMusic } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { PlaylistCoverUpload } from "./PlaylistCoverUpload";
 
 interface CreatePlaylistDialogProps {
   onSuccess?: () => void;
@@ -18,20 +19,47 @@ export function CreatePlaylistDialog({ onSuccess }: CreatePlaylistDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
+  const [coverImageData, setCoverImageData] = useState<string>("");
+  const [coverMimeType, setCoverMimeType] = useState<string>("");
+
+  const utils = trpc.useUtils();
+
+  const uploadCoverMutation = trpc.playlist.uploadCover.useMutation();
 
   const createPlaylistMutation = trpc.playlist.create.useMutation({
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      // If we have a cover image, upload it
+      if (coverImageData && coverMimeType && data.playlistId) {
+        try {
+          await uploadCoverMutation.mutateAsync({
+            playlistId: data.playlistId,
+            imageData: coverImageData,
+            mimeType: coverMimeType,
+          });
+        } catch (error) {
+          console.error("Failed to upload cover image:", error);
+          // Continue anyway, playlist was created
+        }
+      }
+      
       toast.success("Playlist created successfully!");
       setOpen(false);
-      setName("");
-      setDescription("");
-      setIsPublic(false);
+      resetForm();
+      utils.playlist.list.invalidate();
       onSuccess?.();
     },
     onError: (error) => {
       toast.error(`Failed to create playlist: ${error.message}`);
     },
   });
+
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setIsPublic(false);
+    setCoverImageData("");
+    setCoverMimeType("");
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,8 +70,18 @@ export function CreatePlaylistDialog({ onSuccess }: CreatePlaylistDialogProps) {
     createPlaylistMutation.mutate({ name, description, isPublic });
   };
 
+  const handleImageSelect = (imageData: string, mimeType: string) => {
+    setCoverImageData(imageData);
+    setCoverMimeType(mimeType);
+  };
+
+  const isLoading = createPlaylistMutation.isPending || uploadCoverMutation.isPending;
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) resetForm();
+    }}>
       <DialogTrigger asChild>
         <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Plus className="w-4 h-4 mr-2" />
@@ -58,15 +96,23 @@ export function CreatePlaylistDialog({ onSuccess }: CreatePlaylistDialogProps) {
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Playlist Name</Label>
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="My Awesome Playlist"
-              required
+          <div className="flex gap-4">
+            <PlaylistCoverUpload
+              onImageSelect={handleImageSelect}
+              size="lg"
             />
+            <div className="flex-1 space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="name">Playlist Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="My Awesome Playlist"
+                  required
+                />
+              </div>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description (optional)</Label>
@@ -90,8 +136,8 @@ export function CreatePlaylistDialog({ onSuccess }: CreatePlaylistDialogProps) {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createPlaylistMutation.isPending}>
-              {createPlaylistMutation.isPending ? "Creating..." : "Create Playlist"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create Playlist"}
             </Button>
           </div>
         </form>

@@ -518,11 +518,11 @@ export async function createPlaylist(playlist: InsertPlaylist) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot create playlist: database not available");
-    return null;
+    return { playlistId: null };
   }
 
   const result = await db.insert(playlists).values(playlist);
-  return result[0].insertId;
+  return { playlistId: result[0].insertId };
 }
 
 export async function getPlaylists(userId: number, limit = 50, offset = 0) {
