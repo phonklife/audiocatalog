@@ -168,6 +168,9 @@ export default function Home() {
                 id={track.id.toString()}
                 title={track.title}
                 artist={track.artist}
+                album={track.album}
+                genre={track.genre}
+                description={track.description}
                 duration={track.duration}
                 url={track.fileUrl}
                 isPlaying={currentTrackId === track.id.toString() && isPlaying}
@@ -178,6 +181,10 @@ export default function Home() {
                 }}
                 onPrevious={() => {
                   playPrevious();
+                }}
+                onTrackUpdated={() => {
+                  utils.audio.list.invalidate();
+                  utils.audio.search.invalidate();
                 }}
               />
             ))

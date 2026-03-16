@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks, recordPlayback, getRecentlyPlayed, getTopTracks, getUserStatistics, getPlaybackHistory, getListeningPatternsByDay, getListeningPatternsByWeek, getListeningPatternsByMonth, getGenrePreferences, getTopGenresByPeriod, createPlaylist, getPlaylists, getPlaylistById, updatePlaylist, deletePlaylist, addTrackToPlaylist, removeTrackFromPlaylist, getPlaylistTracks, reorderPlaylistTracks, getPlaylistTrackCount } from "./db";
+import { getAudioTracks, searchAudioTracks, createAudioTrack, updateAudioTrack, deleteAudioTrack, getAudioTrackById, updateAudioTrackPlays, addFavorite, removeFavorite, isFavorite, getFavoriteTracks, recordPlayback, getRecentlyPlayed, getTopTracks, getUserStatistics, getPlaybackHistory, getListeningPatternsByDay, getListeningPatternsByWeek, getListeningPatternsByMonth, getGenrePreferences, getTopGenresByPeriod, createPlaylist, getPlaylists, getPlaylistById, updatePlaylist, deletePlaylist, addTrackToPlaylist, removeTrackFromPlaylist, getPlaylistTracks, reorderPlaylistTracks, getPlaylistTrackCount } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -44,6 +44,25 @@ export const appRouter = router({
     recordPlay: protectedProcedure
       .input(z.object({ trackId: z.number() }))
       .mutation(({ input }) => updateAudioTrackPlays(input.trackId)),
+    update: protectedProcedure
+      .input(z.object({
+        trackId: z.number(),
+        title: z.string().min(1).optional(),
+        artist: z.string().min(1).optional(),
+        album: z.string().nullable().optional(),
+        genre: z.string().nullable().optional(),
+        description: z.string().nullable().optional(),
+      }))
+      .mutation(({ ctx, input }) => {
+        const { trackId, ...updates } = input;
+        return updateAudioTrack(trackId, ctx.user.id, updates);
+      }),
+    delete: protectedProcedure
+      .input(z.object({ trackId: z.number() }))
+      .mutation(({ ctx, input }) => deleteAudioTrack(input.trackId, ctx.user.id)),
+    getById: protectedProcedure
+      .input(z.object({ trackId: z.number() }))
+      .query(({ ctx, input }) => getAudioTrackById(input.trackId, ctx.user.id)),
     upload: protectedProcedure
       .input(z.object({
         file: z.instanceof(File),

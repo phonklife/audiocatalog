@@ -19,7 +19,7 @@
 
 ## Phase 3: Features & Polish
 - [x] Add audio upload functionality
-- [ ] Add track metadata editing
+- [x] Add track metadata editing
 - [x] Add favorites/bookmarking feature
 - [x] Add playback history
 - [ ] Add responsive design for mobile
@@ -68,6 +68,14 @@
 - [x] Add cover image display on PlaylistDetail page
 - [x] Add ability to change cover image for existing playlists
 - [x] Test cover image upload and display
+
+## Phase 3.11: Track Metadata Editing
+- [x] Add updateAudioTrack database query helper
+- [x] Create tRPC mutation for updating track metadata
+- [x] Create EditTrackDialog component with form fields
+- [x] Add edit button to AudioTrack component
+- [x] Add delete track functionality
+- [x] Test edit and delete functionality
 
 ## Phase 3.10: Bulk Track Import
 - [x] Create BulkUploadDialog component

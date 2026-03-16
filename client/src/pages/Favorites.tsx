@@ -101,6 +101,9 @@ export default function Favorites() {
                 id={track.id.toString()}
                 title={track.title}
                 artist={track.artist}
+                album={track.album}
+                genre={track.genre}
+                description={track.description}
                 duration={track.duration}
                 url={track.fileUrl}
                 isPlaying={currentTrackId === track.id.toString() && isPlaying}
@@ -112,6 +115,7 @@ export default function Favorites() {
                 onPrevious={() => {
                   playPrevious();
                 }}
+                onTrackUpdated={() => refetch()}
               />
             ))
           ) : (

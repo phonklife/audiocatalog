@@ -3,12 +3,16 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { AudioPlayer } from './AudioPlayer';
 import { FavoriteButton } from './FavoriteButton';
 import { AddToPlaylistDialog } from './AddToPlaylistDialog';
+import { EditTrackDialog } from './EditTrackDialog';
 import { useTrackPlayback } from '@/hooks/useTrackPlayback';
 
 interface AudioTrackProps {
   id: string;
   title: string;
   artist: string;
+  album?: string | null;
+  genre?: string | null;
+  description?: string | null;
   duration: number;
   url: string;
   isPlaying?: boolean;
@@ -16,12 +20,16 @@ interface AudioTrackProps {
   onPause?: () => void;
   onNext?: () => void;
   onPrevious?: () => void;
+  onTrackUpdated?: () => void;
 }
 
 export function AudioTrack({
   id,
   title,
   artist,
+  album,
+  genre,
+  description,
   duration,
   url,
   isPlaying = false,
@@ -29,6 +37,7 @@ export function AudioTrack({
   onPause,
   onNext,
   onPrevious,
+  onTrackUpdated,
 }: AudioTrackProps) {
   const [waveform, setWaveform] = useState<number[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
@@ -133,6 +142,10 @@ export function AudioTrack({
 
           {/* Action Buttons */}
           <div className="flex-shrink-0 flex items-center gap-2">
+            <EditTrackDialog
+              track={{ id: parseInt(id), title, artist, album, genre, description }}
+              onSuccess={onTrackUpdated}
+            />
             <AddToPlaylistDialog trackId={parseInt(id)} trackTitle={title} />
             <FavoriteButton trackId={parseInt(id)} size="md" />
           </div>

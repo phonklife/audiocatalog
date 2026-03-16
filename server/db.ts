@@ -137,6 +137,65 @@ export async function createAudioTrack(track: InsertAudioTrack) {
   return db.insert(audioTracks).values(track);
 }
 
+export async function updateAudioTrack(
+  trackId: number,
+  userId: number,
+  updates: { title?: string; artist?: string; album?: string | null; genre?: string | null; description?: string | null }
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update audio track: database not available");
+    return null;
+  }
+
+  const updateSet: Record<string, unknown> = {};
+  if (updates.title !== undefined) updateSet.title = updates.title;
+  if (updates.artist !== undefined) updateSet.artist = updates.artist;
+  if (updates.album !== undefined) updateSet.album = updates.album;
+  if (updates.genre !== undefined) updateSet.genre = updates.genre;
+  if (updates.description !== undefined) updateSet.description = updates.description;
+
+  if (Object.keys(updateSet).length === 0) return null;
+
+  return db
+    .update(audioTracks)
+    .set(updateSet)
+    .where(and(eq(audioTracks.id, trackId), eq(audioTracks.userId, userId)));
+}
+
+export async function deleteAudioTrack(trackId: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot delete audio track: database not available");
+    return null;
+  }
+
+  // Delete related records first
+  await db.delete(favorites).where(eq(favorites.trackId, trackId));
+  await db.delete(playbackHistory).where(eq(playbackHistory.trackId, trackId));
+  await db.delete(playlistTracks).where(eq(playlistTracks.trackId, trackId));
+
+  return db
+    .delete(audioTracks)
+    .where(and(eq(audioTracks.id, trackId), eq(audioTracks.userId, userId)));
+}
+
+export async function getAudioTrackById(trackId: number, userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get audio track: database not available");
+    return null;
+  }
+
+  const result = await db
+    .select()
+    .from(audioTracks)
+    .where(and(eq(audioTracks.id, trackId), eq(audioTracks.userId, userId)))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : null;
+}
+
 export async function updateAudioTrackPlays(trackId: number) {
   const db = await getDb();
   if (!db) {
